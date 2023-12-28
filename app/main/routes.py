@@ -7,6 +7,8 @@ from app import db
 from app.main.forms import EditProfileForm, EmptyForm, PostForm, SearchForm
 from app.models import User, Post
 from app.main import bp
+import os
+import re
 
 
 @bp.before_app_request
@@ -155,3 +157,32 @@ def search():
         if page > 1 else None
     return render_template('search.html', title='Search', posts=posts,
                            next_url=next_url, prev_url=prev_url)
+
+
+@bp.route('/<user>/<project>/<pagenumber>', methods=['GET', 'POST'])
+def page(user, project, pagenumber):
+    page = str(user) + '/' + str(project) + '/' + str(pagenumber) + '.png'
+    
+    project_path = os.path.join(current_app.root_path, 'static', user, project)
+    pages = os.listdir(project_path)
+    print(pages)
+
+    # Function to extract number from filename
+    def extract_number(page):
+        match = re.search(r'\d+', page)
+        return int(match.group()) if match else None
+
+    # Extract numbers and remove None values
+    numbers = [extract_number(page) for page in pages]
+    numbers = [num for num in numbers if num is not None]
+
+    last = str(max(numbers))
+    previous = str(int(pagenumber) - 1)
+    if int(previous) < 0:
+        previous = str(0)
+    next = str(int(pagenumber) + 1)
+    if int(next) > int(last):
+        next = last
+
+    return render_template('page.html', title='Scroll', page=page, user=user, 
+                           project=project,previous=previous, next=next, last=last)

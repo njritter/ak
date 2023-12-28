@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<a href={{ url_for("main.page", user=user, project=project, pagenumber="0") }}>First</a>
+<a href={{ url_for("main.page", user=user, project=project, pagenumber=previous) }}>Previous</a>
+<a href={{ url_for("main.page", user=user, project=project, pagenumber=next) }}>Next</a>
+<a href={{ url_for("main.page", user=user, project=project, pagenumber=last) }}>Last</a>
+<br />
+<br />
+<img src="{{ url_for('static', filename=page) }}" class="image" />
+{% endblock %}
