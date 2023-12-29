@@ -172,3 +172,27 @@ class Post(SearchableMixin, db.Model):
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
+    
+
+class Project:
+    def __init__(self, user, project, url_start):
+        self.user = user
+        self.project = project
+        self.url_start = url_start
+
+    def get_info(self):
+        return f"User: {self.user}, Project: {self.project}, \
+            Start URL: {self.url_start}"
+    
+
+class Page:
+    def __init__(self, id, project_id, created_date, url, page_number):
+        self.id = id
+        self.project_id = project_id
+        self.created_date = created_date
+        self.url = url
+        self.page_number = page_number
+
+    def get_info(self):
+        return f"Page ID: {self.id}, Created: {self.created_date}, \
+            URL: {self.url}, Page Number: {self.page_number}"
