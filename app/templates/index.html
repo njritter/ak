@@ -2,7 +2,13 @@
 {% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
-    <h1>Hi {{ current_user.username }}!</h1>
+    
+    {% if current_user.username %}
+        <h1>Welcome to The Library, {{ current_user.username }}</h1>
+    {% else %}
+        <h1>Welcome to The Library</h1>
+    {% endif %}
+    
     {% if g.search_form %}
     <form class="navbar-form navbar-left" method="get"
             action="{{ url_for('main.search') }}">

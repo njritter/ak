@@ -42,18 +42,21 @@ def index():
 @bp.route('/home')
 @login_required
 def home():
-    project_path = os.path.join(current_app.root_path, 'static', current_user.username)
-    page = request.args.get('page', 1, type=int)
-    posts = db.paginate(current_user.following_posts(), page=page,
-                        per_page=current_app.config['POSTS_PER_PAGE'],
-                        error_out=False)
-    next_url = url_for('main.index', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('main.index', page=posts.prev_num) \
-        if posts.has_prev else None
+    # get users, projects, and pages from db ... filler class here now
+    static = os.path.join(current_app.root_path, 'static')
+    users = os.listdir(static)
+    users = [u for u in users if not u.startswith('.')]
+    projects = []
+    u = current_user.username
+    user_projects = os.listdir(os.path.join(static, u))
+    user_projects = [p for p in user_projects if not p.startswith('.')]
+    for p in user_projects:
+        project = Project(user = u, 
+                          project = p, 
+                          url_start = u + '/' + p + '/cover.png')
+        projects.append(project)
     return render_template('home.html', title='Home',
-                           posts=posts.items, next_url=next_url,
-                           prev_url=prev_url)
+                           projects=projects)
 
 
 @bp.route('/craft', methods=['GET', 'POST'])
