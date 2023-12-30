@@ -61,15 +61,35 @@ def home():
 
 @bp.route('/craft', methods=['GET', 'POST'])
 @login_required
-def craft():
+def craft():    # get users, projects, and pages from db ... filler class here now
+    static = os.path.join(current_app.root_path, 'static')
+    users = os.listdir(static)
+    users = [u for u in users if not u.startswith('.')]
+    projects = []
+    u = current_user.username
+    user_projects = os.listdir(os.path.join(static, u))
+    user_projects = [p for p in user_projects if not p.startswith('.')]
+
+    # Add new project option here
+
+    for p in user_projects:
+        project = Project(user = u, 
+                          project = p, 
+                          url_start = u + '/' + p + '/cover.png')
+        projects.append(project)
+    return render_template('craft.html', title='Craft',
+                           projects=projects)
+
+
+@bp.route('/craft/<project>', methods=['GET', 'POST'])
+@login_required
+def add_page(project):
+    # Check that project exists for user ... return to craft if not
     form = PostForm()
     if form.validate_on_submit():
         post = Post(body=form.post.data, author=current_user)
-        db.session.add(post)
-        db.session.commit()
-        flash('Your post is now live!')
         return redirect(url_for('main.index'))
-    return render_template('craft.html', title='Craft', form=form)
+    return render_template('add_page.html', title='Craft', form=form)
 
 
 @bp.route('/user/<username>')
@@ -136,10 +156,10 @@ def unfollow(username):
         user = db.session.scalar(
             sa.select(User).where(User.username == username))
         if user is None:
-            flash(_('User %(username)s not found.', username=username))
+            flash('User %(username)s not found.', username=username)
             return redirect(url_for('main.index'))
         if user == current_user:
-            flash(_('You cannot unfollow yourself!'))
+            flash('You cannot unfollow yourself!')
             return redirect(url_for('main.user', username=username))
         current_user.unfollow(user)
         db.session.commit()
