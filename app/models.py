@@ -184,15 +184,18 @@ class Project:
         return f"User: {self.user}, Project: {self.project}, \
             Start URL: {self.url_start}"
     
+    def __repr__(self):
+        return '<User {}, {}>'.format(self.user, self.project)
+    
 
 class Page:
-    def __init__(self, id, project_id, created_date, url, page_number):
-        self.id = id
-        self.project_id = project_id
-        self.created_date = created_date
+    def __init__(self, username, project, number, url):
+        self.username = username
+        self.project = project
+        self.number = number
         self.url = url
-        self.page_number = page_number
 
     def get_info(self):
-        return f"Page ID: {self.id}, Created: {self.created_date}, \
-            URL: {self.url}, Page Number: {self.page_number}"
+        return f"Username: {self.username}, Project: {self.project}, \
+            Number: {self.number}, URL: {self.url}"
+    

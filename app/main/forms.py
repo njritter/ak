@@ -30,7 +30,7 @@ class EmptyForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    post = TextAreaField('Say something', validators=[DataRequired()])
+    post = TextAreaField('Describe page', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 

@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 import sqlalchemy as sa
 from app import db
 from app.main.forms import EditProfileForm, EmptyForm, PostForm, SearchForm
-from app.models import User, Post, Project
+from app.models import User, Post, Project, Page
 from app.main import bp
 import os
 import re
@@ -35,6 +35,8 @@ def index():
                               project = p, 
                               url_start = u + '/' + p + '/cover.png')
             projects.append(project)
+    for p in projects:
+        print(p)
     return render_template('index.html', title='Explore',
                            projects=projects)
 
@@ -89,7 +91,36 @@ def add_page(project):
     if form.validate_on_submit():
         post = Post(body=form.post.data, author=current_user)
         return redirect(url_for('main.index'))
-    return render_template('add_page.html', title='Craft', form=form)
+    
+    # get pages for project to display
+    pages = []
+    project_path = os.path.join(current_app.root_path, 
+                                'static', current_user.username, project)
+    pages = os.listdir(project_path)
+    
+    # Function to extract number from filename
+    def extract_number(page):
+        match = re.search(r'\d+', page)
+        return int(match.group()) if match else None
+
+    # Extract numbers and remove None values
+    numbers = [extract_number(page) for page in pages]
+    numbers = [num for num in numbers if num is not None]
+    pages = (sorted(set(numbers)))
+
+    Pages = []
+
+    for p in pages:
+        
+        page = Page(username = current_user.username,
+                    project = project,
+                    number = p,
+                    url = current_user.username + '/' + project + '/' + str(p) + 'm.png')
+        Pages.append(page)
+    
+    print(Pages)
+
+    return render_template('add_page.html', title='Craft', form=form, pages=Pages)
 
 
 @bp.route('/user/<username>')
