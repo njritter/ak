@@ -14,6 +14,8 @@
     </form>
     {% endif %}
 
+    <br>
+
 
     {% for project in projects %}
     <a href={{ url_for("main.page", user=project.user, project=project.project, pagenumber="0") }}>

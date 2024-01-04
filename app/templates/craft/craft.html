@@ -14,13 +14,13 @@
     </form>
     {% endif %}
 
-
-    {% for project in projects %}
     <br>
-    <a href={{ url_for("main.add_page", project=project.project) }}>
+    <a href={{ url_for('main.craft') }}>
+        <img src="{{ url_for('static', filename='_ak/new_project_small.png') }}" class="image" /></a>
+    {% for project in projects %}
+    <a href={{ url_for('main.craft_project', project=project.project) }}>
         <img src="{{ url_for('static', filename=project.url_start) }}" class="image" />
     </a>
-    <br>
     {% endfor %}
 
 {% endblock %}

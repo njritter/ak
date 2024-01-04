@@ -29,6 +29,19 @@ class EmptyForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
+class craftPageForm(FlaskForm):
+    description = TextAreaField('Describe page', validators=[DataRequired()])
+    submit = SubmitField('Craft')
+
+
+class savePageForm(FlaskForm):
+    submit = SubmitField('Save to Workshop')
+
+
+class addPageForm(FlaskForm):
+    submit = SubmitField('Add to Story')
+
+
 class PostForm(FlaskForm):
     post = TextAreaField('Describe page', validators=[DataRequired()])
     submit = SubmitField('Submit')

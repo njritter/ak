@@ -1,13 +1,17 @@
+import cv2
 from datetime import datetime, timezone
 from flask import render_template, flash, redirect, url_for, request, g, \
     current_app
 from flask_login import current_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.main.forms import EditProfileForm, EmptyForm, PostForm, SearchForm
+from app.main.forms import EditProfileForm, EmptyForm, PostForm, \
+    SearchForm, craftPageForm, addPageForm, savePageForm
 from app.models import User, Post, Project, Page
 from app.main import bp
+from app.navigate import getUsers, getProjects, getPages
 import os
+from PIL import Image
 import re
 
 
@@ -22,21 +26,8 @@ def before_request():
 @bp.route('/', methods=['GET', 'POST'])
 @bp.route('/index', methods=['GET', 'POST'])
 def index():
-    # get users, projects, and pages from db ... filler class here now
-    static = os.path.join(current_app.root_path, 'static')
-    users = os.listdir(static)
-    users = [u for u in users if not u.startswith('.')]
-    projects = []
-    for u in users:
-        user_projects = os.listdir(os.path.join(static, u))
-        user_projects = [p for p in user_projects if not p.startswith('.')]
-        for p in user_projects:
-            project = Project(user = u, 
-                              project = p, 
-                              url_start = u + '/' + p + '/cover.png')
-            projects.append(project)
-    for p in projects:
-        print(p)
+    users = getUsers()
+    projects = getProjects(users)
     return render_template('index.html', title='Explore',
                            projects=projects)
 
@@ -44,83 +35,64 @@ def index():
 @bp.route('/home')
 @login_required
 def home():
-    # get users, projects, and pages from db ... filler class here now
-    static = os.path.join(current_app.root_path, 'static')
-    users = os.listdir(static)
-    users = [u for u in users if not u.startswith('.')]
-    projects = []
-    u = current_user.username
-    user_projects = os.listdir(os.path.join(static, u))
-    user_projects = [p for p in user_projects if not p.startswith('.')]
-    for p in user_projects:
-        project = Project(user = u, 
-                          project = p, 
-                          url_start = u + '/' + p + '/cover.png')
-        projects.append(project)
+    u = [current_user.username]
+    projects = getProjects(u)
     return render_template('home.html', title='Home',
                            projects=projects)
 
 
 @bp.route('/craft', methods=['GET', 'POST'])
 @login_required
-def craft():    # get users, projects, and pages from db ... filler class here now
-    static = os.path.join(current_app.root_path, 'static')
-    users = os.listdir(static)
-    users = [u for u in users if not u.startswith('.')]
-    projects = []
-    u = current_user.username
-    user_projects = os.listdir(os.path.join(static, u))
-    user_projects = [p for p in user_projects if not p.startswith('.')]
-
-    # Add new project option here
-
-    for p in user_projects:
-        project = Project(user = u, 
-                          project = p, 
-                          url_start = u + '/' + p + '/cover.png')
-        projects.append(project)
-    return render_template('craft.html', title='Craft',
+def craft():
+    u = [current_user.username]
+    projects = getProjects(u)
+    return render_template('craft/craft.html', title='Craft',
                            projects=projects)
 
 
 @bp.route('/craft/<project>', methods=['GET', 'POST'])
 @login_required
-def add_page(project):
+def craft_project(project):
     # Check that project exists for user ... return to craft if not
-    form = PostForm()
-    if form.validate_on_submit():
-        post = Post(body=form.post.data, author=current_user)
-        return redirect(url_for('main.index'))
-    
-    # get pages for project to display
-    pages = []
-    project_path = os.path.join(current_app.root_path, 
-                                'static', current_user.username, project)
-    pages = os.listdir(project_path)
-    
-    # Function to extract number from filename
-    def extract_number(page):
-        match = re.search(r'\d+', page)
-        return int(match.group()) if match else None
+    newPageImage = '_ak/empty_scroll.png'
+    story_pages = getPages(current_user.username, project)
+    workshop_pages = getPages(current_user.username, project, 'workshop')
+    return render_template('craft/craft_project.html', title='Craft', 
+                           story_pages=story_pages, workshop_pages=workshop_pages,
+                           newPageImage=newPageImage)
 
-    # Extract numbers and remove None values
-    numbers = [extract_number(page) for page in pages]
-    numbers = [num for num in numbers if num is not None]
-    pages = (sorted(set(numbers)))
 
-    Pages = []
+@bp.route('/craft/<project>/<page>', methods=['GET', 'POST'])
+@login_required
+def craft_project_page(project, page):
+    # Check that project exists for user ... return to craft if not
+    page_image = '_ak/new_page.png'
+    craftForm = PostForm()
+    addForm = addPageForm()
+    saveForm = savePageForm()
 
-    for p in pages:
+    if craftForm.validate_on_submit():
+        newPageImage = '_ak/Kaldor_P1.png'
+        # Save image to temp folder
+        newPagePath = os.path.join(current_app.root_path, 'static', newPageImage)
+        image = Image.open(newPagePath)
+        addPagePath = os.path.join(current_app.root_path, 'static', current_user.username, project)
+        image.save(addPagePath + '/4' + '.png')
         
-        page = Page(username = current_user.username,
-                    project = project,
-                    number = p,
-                    url = current_user.username + '/' + project + '/' + str(p) + 'm.png')
-        Pages.append(page)
-    
-    print(Pages)
+        # Resize the image
+        image = cv2.imread(addPagePath + '/4' + '.png')
+        resized_image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_AREA)
+        # Save the resized image
+        output_path = addPagePath + '/4m' + '.png'
+        cv2.imwrite(output_path, resized_image)
 
-    return render_template('add_page.html', title='Craft', form=form, pages=Pages)
+    story_pages = getPages(current_user.username, project)
+    workshop_pages = getPages(current_user.username, project, 'workshop')
+
+    return render_template('craft/craft_project_page.html', title='Craft', 
+                           craftForm=craftForm, addForm=addForm, saveForm=saveForm,
+                           story_pages=story_pages, workshop_pages=workshop_pages,
+                           newPageImage=page_image)
 
 
 @bp.route('/user/<username>')

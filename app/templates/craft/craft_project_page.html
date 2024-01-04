@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import "bootstrap_wtf.html" as wtf %}
+
+{% block content %}
+    <h1>Add a new page to current project, {{ current_user.username }}</h1>
+
+    {{ wtf.quick_form(craftForm) }}
+
+    <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
+
+    <br><br>
+
+    <form method="post">
+        {{ addForm.hidden_tag() }}
+        {{ addForm.submit(class="btn btn-primary") }}
+    </form>
+
+    <br>
+
+    <form method="post">
+        {{ saveForm.hidden_tag() }}
+        {{ saveForm.submit(class="btn btn-primary") }}
+    </form>
+
+    <br>
+
+    <h1>Story</h1>
+    {% for page in story_pages %}
+    <a href={{ url_for("main.page", user=page.username, project=page.project, pagenumber=page.number) }}>
+    <img src="{{ url_for('static', filename=page.url) }}" class="image" /></a> 
+    {% endfor %}
+
+    <h1>Workshop</h1>
+    {% for page in workshop_pages %}
+    <a href={{ url_for("main.craft_project_page", project=page.project, page=page.number) }}>
+    <img src="{{ url_for('static', filename=page.url) }}" class="image" /></a> 
+    {% endfor %}
+
+{% endblock %}
