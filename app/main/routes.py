@@ -5,11 +5,12 @@ from flask import render_template, flash, redirect, url_for, request, g, \
 from flask_login import current_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.main.forms import EditProfileForm, EmptyForm, PostForm, \
-    SearchForm, craftPageForm, addPageForm, savePageForm
+from app.main.forms import EditProfileForm, EmptyForm, \
+    SearchForm, craftPageForm, addPageForm, removePageForm
 from app.models import User, Post, Project, Page
+from app.craft import createTestPage, addPage, removePage
 from app.main import bp
-from app.navigate import getUsers, getProjects, getPages
+from app.navigate import getUsers, getProjects, getPages, checkPageStatus
 import os
 from PIL import Image
 import re
@@ -66,33 +67,46 @@ def craft_project(project):
 @login_required
 def craft_project_page(project, page):
     # Check that project exists for user ... return to craft if not
-    page_image = '_ak/new_page.png'
-    craftForm = PostForm()
-    addForm = addPageForm()
-    saveForm = savePageForm()
+    if page == 'new':
+        page_image = '_ak/new_page_small.png'
 
-    if craftForm.validate_on_submit():
-        newPageImage = '_ak/Kaldor_P1.png'
-        # Save image to temp folder
-        newPagePath = os.path.join(current_app.root_path, 'static', newPageImage)
-        image = Image.open(newPagePath)
-        addPagePath = os.path.join(current_app.root_path, 'static', current_user.username, project)
-        image.save(addPagePath + '/4' + '.png')
+    craftForm = craftPageForm()
+    addForm = addPageForm()
+    removeForm = removePageForm()
+
+    if 'craft_page' in request.form and craftForm.validate_on_submit():
+        if 'use_openai' in request.form:
+            print("Creating real page")
+        else:
+            print("Creating test page")
+            page_image = createTestPage(current_app, current_user.username, project)
         
-        # Resize the image
-        image = cv2.imread(addPagePath + '/4' + '.png')
-        resized_image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_AREA)
-        # Save the resized image
-        output_path = addPagePath + '/4m' + '.png'
-        cv2.imwrite(output_path, resized_image)
+        return redirect(url_for('main.craft_project_page', project=project, page=page_image))
+
+    # Check if page is in story or workshop
+    page_status = checkPageStatus(current_user.username, project, page)
+    if page_status == 'story':
+        page_image = current_user.username + '/' + project + '/' + page + '.png'
+    if page_status == 'workshop':
+        page_image = current_user.username + '/' + project + '/workshop/' + page + '.png'
+
+    if 'add_page_story' in request.form and addForm.validate_on_submit():
+        print("Added page to Story")
+        addPage(current_app, current_user.username, project, page)
+        return redirect(url_for('main.craft_project_page', project=project, page='new'))
+    
+    if 'remove_page_story' in request.form:
+        print("Removed page from Story")
+        removePage(current_app, current_user.username, project, page)
+        return redirect(url_for('main.craft_project_page', project=project, page='new'))
 
     story_pages = getPages(current_user.username, project)
     workshop_pages = getPages(current_user.username, project, 'workshop')
 
     return render_template('craft/craft_project_page.html', title='Craft', 
-                           craftForm=craftForm, addForm=addForm, saveForm=saveForm,
+                           craftForm=craftForm, addForm=addForm, removeForm=removeForm,
                            story_pages=story_pages, workshop_pages=workshop_pages,
-                           newPageImage=page_image)
+                           newPageImage=page_image, page=page, page_status=page_status)
 
 
 @bp.route('/user/<username>')

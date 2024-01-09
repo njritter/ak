@@ -32,6 +32,7 @@ def getProjects(users):
 
 def getPages(user, project, shelf=None):
     # Takes a user and project and returns a list of all Pages for Project
+    # This used a lot! 
     project_path = os.path.join(current_app.root_path, 'static', user, project)
     stub = user + '/' + project + '/'
     if shelf == 'workshop':
@@ -53,10 +54,29 @@ def getPages(user, project, shelf=None):
     for page_number in unique_sorted_page_numbers:      
         page = Page(username = user,
                     project = project,
-                    number = page_number,
+                    number = str(page_number),
                     url = stub + str(page_number) + 'm.png')
         pages.append(page)
-        print(page)
-        print(project_path)
 
     return(pages)
+
+
+def checkPageStatus(user, project, page):
+    # Check to see if page exists in story
+    pages = getPages(user, project)
+    numbers = [p.number for p in pages]
+    if page in numbers:
+        print("Page exists in story")
+        return("story")
+    
+    # Check to see if page exists in workshop
+    pages = getPages(user, project, shelf='workshop')
+    numbers = [p.number for p in pages]
+    if page in numbers:
+        print("Page exists in workshop")
+        return("workshop")
+    print(numbers)
+
+    # If not in story or workshop, return new
+    print("New Page")
+    return("new")

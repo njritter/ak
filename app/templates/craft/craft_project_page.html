@@ -1,32 +1,50 @@
 {% extends "base.html" %}
-{% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
-    <h1>Add a new page to current project, {{ current_user.username }}</h1>
 
-    {{ wtf.quick_form(craftForm) }}
+    {% if page == 'new' %}
+        <h1>Create a new page</h1>
+        <br>
+        <form method="post">
+            {{ craftForm.hidden_tag() }}
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-3">
+                        <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
+                    </div>
+                    <div class="col-9">
+                        {{ craftForm.description(rows=7, cols=60) }} <br><br>
+                        {{ craftForm.craft_page(class="btn btn-primary") }}
+                        {{ craftForm.use_openai() }} {{ craftForm.use_openai.label }} <br>
+                    </div>
+                </div>
+            </div>
+        </form>
+    {% endif %}
 
-    <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
+    {% if page_status == 'workshop' %}
+        <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
+        <br><br>
+        <form method="post">
+            {{ addForm.hidden_tag() }}
+            {{ addForm.add_page_story(class="btn btn-primary") }}
+        </form>
+    {% endif %}
 
-    <br><br>
-
-    <form method="post">
-        {{ addForm.hidden_tag() }}
-        {{ addForm.submit(class="btn btn-primary") }}
-    </form>
-
-    <br>
-
-    <form method="post">
-        {{ saveForm.hidden_tag() }}
-        {{ saveForm.submit(class="btn btn-primary") }}
-    </form>
+    {% if page_status == 'story' %}
+        <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
+        <br><br>
+        <form method="post">
+            {{ removeForm.hidden_tag() }}
+            {{ removeForm.remove_page_story(class="btn btn-primary") }}
+        </form>
+    {% endif %}
 
     <br>
 
     <h1>Story</h1>
     {% for page in story_pages %}
-    <a href={{ url_for("main.page", user=page.username, project=page.project, pagenumber=page.number) }}>
+    <a href={{ url_for("main.craft_project_page", project=page.project, page=page.number) }}>
     <img src="{{ url_for('static', filename=page.url) }}" class="image" /></a> 
     {% endfor %}
 

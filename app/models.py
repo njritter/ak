@@ -200,4 +200,5 @@ class Page:
             Number: {self.number}, URL: {self.url}"
     
     def __repr__(self):
-        return '<User: {}, Project: {}, URL: {}>'.format(self.username, self.project, self.url)
+        return '<User: {}, Project: {}, Number: {}, URL: {}>'.format(self.username, self.project, \
+                                                         self.number, self.url)
