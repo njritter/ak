@@ -68,9 +68,9 @@ def craft_project(project):
 def craft_project_page(project, page):
     # Check that project exists for user ... return to craft if not
     if page == 'new':
-        page_image = '_ak/new_page_small.png'
+        page_image = '_ak/new_page.png'
 
-    craftForm = craftPageForm()
+    craftForm = craftPageForm(description="test")
     addForm = addPageForm()
     removeForm = removePageForm()
 

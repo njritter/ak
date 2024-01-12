@@ -1,47 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-    {% if page == 'new' %}
-        <h1>Create a new page</h1>
-        <br>
-        <form method="post">
-            {{ craftForm.hidden_tag() }}
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-3">
-                        <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
-                    </div>
-                    <div class="col-9">
-                        {{ craftForm.description(rows=7, cols=60) }} <br><br>
-                        {{ craftForm.craft_page(class="btn btn-primary") }}
-                        {{ craftForm.use_openai() }} {{ craftForm.use_openai.label }} <br>
-                    </div>
-                </div>
-            </div>
-        </form>
-    {% endif %}
-
+    
+    {% include 'craft/_page.html' %}
+    <br>
     {% if page_status == 'workshop' %}
-        <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
-        <br><br>
         <form method="post">
             {{ addForm.hidden_tag() }}
             {{ addForm.add_page_story(class="btn btn-primary") }}
         </form>
     {% endif %}
-
     {% if page_status == 'story' %}
-        <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
-        <br><br>
         <form method="post">
             {{ removeForm.hidden_tag() }}
             {{ removeForm.remove_page_story(class="btn btn-primary") }}
         </form>
     {% endif %}
-
     <br>
-
     <h1>Story</h1>
     {% for page in story_pages %}
     <a href={{ url_for("main.craft_project_page", project=page.project, page=page.number) }}>

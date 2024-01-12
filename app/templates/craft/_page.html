@@ -1,0 +1,24 @@
+<form method="post">
+    {{ craftForm.hidden_tag() }}
+    <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
+    <br><br>
+    <div class="container-fluid">
+        <div class="row">
+            {{ craftForm.text.label }}
+            {{ craftForm.text(rows=7) }}
+        </div>
+        <div class="row">
+            {{ craftForm.description.label }}
+            {{ craftForm.description(rows=7) }}
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-sm-1">
+                {{ craftForm.craft_page(class="btn btn-primary") }}
+            </div>         
+            <div class="col-sm-2">
+                {{ craftForm.use_openai() }} {{ craftForm.use_openai.label }}
+            </div>
+        </div>
+    </div>
+</form>

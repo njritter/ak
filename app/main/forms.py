@@ -30,9 +30,11 @@ class EmptyForm(FlaskForm):
 
 
 class craftPageForm(FlaskForm):
+    text = TextAreaField('Story text')
     description = TextAreaField('Describe page', validators=[DataRequired()])
     use_openai = BooleanField('Use OpenAI')
     craft_page = SubmitField('Craft')
+    update_page = SubmitField('Update')
 
 
 class removePageForm(FlaskForm):
