@@ -17,3 +17,4 @@ class Config:
     ADMINS = ['ritter.neil@gmail.com']
     POSTS_PER_PAGE = 10
     ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')

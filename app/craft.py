@@ -1,16 +1,103 @@
 from app.navigate import getPages
 import cv2
+from flask import current_app
 import numpy as np
+from openai import OpenAI
 import os
 from PIL import Image
+import requests
 import shutil
 import time
+
+
+def compressImage(image_id, image_path=None, icon_path=None):
+
+    if image_path == None:
+        image_path = os.path.join(current_app.root_path, 'static', '_temp', image_id + '.png')
+
+    if icon_path == None:    
+        icon_path = os.path.join(current_app.root_path, 'static', '_temp', image_id + 'm.png')
+
+    # Load image
+    image = Image.open(image_path)
+
+    # Generate image icon
+    image_np = np.array(image)
+    image_icon_np = cv2.resize(image_np, (256, 256), interpolation=cv2.INTER_AREA)
+    image_icon = Image.fromarray(image_icon_np)
+
+    # Save image icon
+    image_icon.save(icon_path)
+    
+    return()
+
+
+def moveImage(current_user, project, image_id, shelf='workshop'):
+    print("Moving image")
+    # Move image and icon from temp to workshop
+    oldImagePath = os.path.join(current_app.root_path, 'static', '_temp', image_id + '.png')
+    oldIconPath = os.path.join(current_app.root_path, 'static', '_temp', image_id + 'm.png')
+
+    newImagePath = os.path.join(current_app.root_path, 'static', current_user, project, shelf, image_id + '.png')
+    newIconPath = os.path.join(current_app.root_path, 'static', current_user, project, shelf, image_id + 'm.png')
+
+    shutil.move(oldImagePath, newImagePath)
+    shutil.move(oldIconPath, newIconPath)
+
+    return()
+
+
+def saveImageURL(image_url):
+
+    page_id = str(round(time.time() * 100))
+    path = os.path.join(current_app.root_path, 'static', '_temp', page_id + '.png')
+    response = requests.get(image_url)
+    # Check if the request was successful and the content type is correct
+    if response.status_code == 200 and response.headers['Content-Type'] == 'image/png':
+        # Write the content of the response to a file
+        with open(path, 'wb') as file:
+            file.write(response.content)
+        print(f"Image saved at {path}")
+    else:
+        return "Failed to download the image or incorrect content type"
+    return(page_id)
+
+
+def generateImage(prompt):
+    
+    client = OpenAI(api_key=current_app.config['OPENAI_API_KEY'])
+    response = client.images.generate(
+        model="dall-e-3",
+        prompt=prompt,
+        size="1024x1024",
+        quality="standard",
+        n=1)
+
+    image_url = response.data[0].url
+    print(image_url)
+    
+    return(image_url)
+
+
+def craftPage(current_user, project, prompt):
+    # Get info relevant to story
+    print("####################")
+    
+    image_url = generateImage(prompt)
+    image_id = saveImageURL(image_url)
+    print(image_id)
+    compressImage(image_id)
+    moveImage(current_user, project, image_id)
+
+    print("####################")
+    
+    return(image_id)
+
 
 def createTestPage(current_app, current_user, project):
     
     # Generate image (already exists)
     stock_image_path = os.path.join(current_app.root_path, 'static', '_ak/Kaldor_P1.png')
-    print(stock_image_path)
 
     # Load image
     image = Image.open(stock_image_path)
