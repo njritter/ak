@@ -189,16 +189,47 @@ class Project:
     
 
 class Page:
-    def __init__(self, username, project, number, url):
+    def __init__(self, id=None, username=None, projectId=None, storyText=None, 
+                 userImageDescription=None, akImageDescription=None, iconURL=None, 
+                 imageURL=None, status=None, pageNumber=None, createdDate=None, 
+                 updatedDate=None):
+        self.id = id
         self.username = username
-        self.project = project
-        self.number = number
-        self.url = url
+        self.projectId = projectId
+        self.storyText = storyText
+        self.userImageDescription = userImageDescription
+        self.akImageDescription = akImageDescription
+        self.iconURL = iconURL
+        self.imageURL = imageURL
+        self.status = status
+        self.pageNumber = pageNumber
+        self.createdDate = createdDate
+        self.updatedDate = updatedDate
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**data)
 
     def get_info(self):
-        return f"Username: {self.username}, Project: {self.project}, \
-            Number: {self.number}, URL: {self.url}"
+        info = (
+            f"Project ID: {self.id}, "
+            f"Username: {self.username}, "
+            f"Project ID: {self.projectId}, "
+            f"Story Text: {self.storyText}, "
+            f"User Image Description: {self.userImageDescription}, "
+            f"AK Image Description: {self.akImageDescription}, "
+            f"Icon URL: {self.iconURL}, "
+            f"Image URL: {self.imageURL}, "
+            f"Status: {self.status}, "
+            f"Page Number: {self.pageNumber}, "
+            f"Created Date: {self.createdDate}, "
+            f"Updated Date: {self.updatedDate}"
+        )
+        return info
     
     def __repr__(self):
-        return '<User: {}, Project: {}, Number: {}, URL: {}>'.format(self.username, self.project, \
-                                                         self.number, self.url)
+        return (f"Page(id={self.id}, username={self.username}, projectId={self.projectId}, "
+                f"storyText={self.storyText}, userImageDescription={self.userImageDescription}, "
+                f"akImageDescription={self.akImageDescription}, iconURL={self.iconURL}, "
+                f"imageURL={self.imageURL}, status={self.status}, pageNumber={self.pageNumber}, "
+                f"createdDate={self.createdDate}, updatedDate={self.updatedDate})")

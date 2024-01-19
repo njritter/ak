@@ -4,29 +4,18 @@
     
     {% include 'craft/_page.html' %}
     <br>
-    {% if page_status == 'workshop' %}
-        <form method="post">
-            {{ addForm.hidden_tag() }}
-            {{ addForm.add_page_story(class="btn btn-primary") }}
-        </form>
-    {% endif %}
-    {% if page_status == 'story' %}
-        <form method="post">
-            {{ removeForm.hidden_tag() }}
-            {{ removeForm.remove_page_story(class="btn btn-primary") }}
-        </form>
-    {% endif %}
-    <br>
     <h1>Story</h1>
+    <a href={{ url_for("main.craft_project_pageId", project=project, pageId="new") }}>
+        <img src="{{ url_for('static', filename='_ak/new_page_small.png') }}" class="image" /></a>
     {% for page in story_pages %}
-    <a href={{ url_for("main.craft_project_page", project=page.project, page=page.number) }}>
-    <img src="{{ url_for('static', filename=page.url) }}" class="image" /></a> 
+    <a href={{ url_for("main.craft_project_pageId", project=page.projectId, pageId=page.id) }}>
+        <img src="{{ url_for('static', filename=page.iconURL) }}" class="image" /></a> 
     {% endfor %}
 
     <h1>Workshop</h1>
     {% for page in workshop_pages %}
-    <a href={{ url_for("main.craft_project_page", project=page.project, page=page.number) }}>
-    <img src="{{ url_for('static', filename=page.url) }}" class="image" /></a> 
+    <a href={{ url_for("main.craft_project_pageId", project=page.projectId, pageId=page.id) }}>
+        <img src="{{ url_for('static', filename=page.iconURL) }}" class="image" /></a> 
     {% endfor %}
 
 {% endblock %}

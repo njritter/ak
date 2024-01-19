@@ -1,6 +1,9 @@
-from app.navigate import getPages
+from app.models import Page
+from app.navigate import get_pages
+from datetime import datetime
 import cv2
 from flask import current_app
+from flask_login import current_user
 import numpy as np
 from openai import OpenAI
 import os
@@ -8,6 +11,37 @@ from PIL import Image
 import requests
 import shutil
 import time
+
+
+def add_page(page):
+    # Add page to Elasticsearch
+    response = current_app.elasticsearch.index(index='page', id=page.id, body=page.__dict__)
+    print(response)
+    return()
+
+
+def craft_page(project, args):
+
+    page = Page(
+        id = str(round(time.time() * 100)),
+        username = current_user.username,
+        projectId = project,
+        status="workshop",
+        createdDate = datetime.now().isoformat(),
+        updatedDate = datetime.now().isoformat(),
+    )
+
+    fields = page.__dict__.keys()
+
+    for key, value in args.items():
+        if key in fields:
+            setattr(page, key, value)
+
+    # Add page to Elasticsearch page index
+    add_page(page)
+    time.sleep(1)
+
+    return(page)
 
 
 def compressImage(image_id, image_path=None, icon_path=None):

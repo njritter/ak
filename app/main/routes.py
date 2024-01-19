@@ -6,14 +6,16 @@ from flask_login import current_user, login_required
 import sqlalchemy as sa
 from app import db
 from app.main.forms import EditProfileForm, EmptyForm, \
-    SearchForm, craftPageForm, addPageForm, removePageForm
+    SearchForm, craftPageForm
 from app.models import User, Post, Project, Page
-from app.craft import createTestPage, addPage, removePage, craftPage
+from app.craft import createTestPage, addPage, removePage, craftPage, craft_page
 from app.main import bp
-from app.navigate import getUsers, getProjects, getPages, checkPageStatus
+from app.search import add_page
+from app.navigate import getUsers, getProjects, get_pages, load_page, update_page, new_page
 import os
 from PIL import Image
 import re
+import time
 
 
 @bp.before_app_request
@@ -45,6 +47,7 @@ def home():
 @bp.route('/craft', methods=['GET', 'POST'])
 @login_required
 def craft():
+    # List of User's projects
     u = [current_user.username]
     projects = getProjects(u)
     return render_template('craft/craft.html', title='Craft',
@@ -54,73 +57,57 @@ def craft():
 @bp.route('/craft/<project>', methods=['GET', 'POST'])
 @login_required
 def craft_project(project):
-    # Check that project exists for user ... return to craft if not
-    newPageImage = '_ak/empty_scroll.png'
-    story_pages = getPages(current_user.username, project)
-    workshop_pages = getPages(current_user.username, project, 'workshop')
+    # Project Home Page
+    print("Working on project:", project)
+    story_pages = get_pages(current_user.username, project, 'story')
+    workshop_pages = get_pages(current_user.username, project, 'workshop')
     return render_template('craft/craft_project.html', title='Craft', 
                            story_pages=story_pages, workshop_pages=workshop_pages,
-                           newPageImage=newPageImage)
+                           project=project)
 
 
-@bp.route('/craft/<project>/<page>', methods=['GET', 'POST'])
+@bp.route('/craft/<project>/<pageId>', methods=['GET', 'POST'])
 @login_required
-def craft_project_page(project, page):
-    # Check that project exists for user ... return to craft if not
-    if page == 'new':
-        page_image = '_ak/new_page.png'
+def craft_project_pageId(project, pageId):
 
-    craftForm = craftPageForm(description="test")
-    addForm = addPageForm()
-    removeForm = removePageForm()
-
-    if 'craft_page' in request.form and craftForm.validate_on_submit():
-        if 'use_openai' in request.form:
-            print("Creating real page")
-            description = request.form['description']
-            global_context = "Steampunk fantasy. World full of airships, gears, machines powered by steam and gemstones. Has a little bit of a Hayao Miyazaki Studio Ghibli Nausicaä of the Valley of the Wind combined with Moebius Heavy Metal feel."
-            # P0 =  "This image is the title panel for a graphic novel called Kaldor with the word 'Kaldor' written on it. It features a small airshop flying near a mountain that has a medium sized cave entrance. The mountain is part of a chain of mountains and there is a dense forrest at the base of the chain. The cave entrance has a lot of machinery and fortification around it. The cave is about two thirds of the way up the mountain right above the tree line."
-            # P1 = "Small airship flying along mountain range with two passengers."
-            # P2 = "Small airshop comes across a small town near the base of the mountain range. Something is wrong. There is no one there and some of the buildings look like they have been damaged."
-            # P3 = "The two passengers from the airship disembark and explore the abandoned and town that was clearly ravaged by magical beasts"
-            # P4 = "The two passengers from the airship disembark and explore the abandoned and town that was clearly ravaged by magical beasts"
-            # P5 = "The two passengers find interesting clues in the town that lead them to the cave entrance."
-            prompt = global_context + description
-            page_image = craftPage(current_user.username, project=project, prompt=prompt)
-        else:
-            print("Creating test page")
-            print(request.form)
-            print(request.form['description'])
-            print("##########")
-            page_image = createTestPage(current_app, current_user.username, project)
-        
-        return redirect(url_for('main.craft_project_page', project=project, page=page_image))
-
-    # Check if page is in story or workshop
-    page_status = checkPageStatus(current_user.username, project, page)
-    print(page_status)
-    if page_status == 'story':
-        page_image = current_user.username + '/' + project + '/' + page + '.png'
-    if page_status == 'workshop':
-        page_image = current_user.username + '/' + project + '/workshop/' + page + '.png'
-
-    if 'add_page_story' in request.form and addForm.validate_on_submit():
-        print("Added page to Story")
-        addPage(current_app, current_user.username, project, page)
-        return redirect(url_for('main.craft_project_page', project=project, page='new'))
+    # Update existing page
+    if 'update_page' in request.form:
+        page = update_page(pageId=pageId, parameters=request.form)    
+        time.sleep(1)  # ... do this better ...
+        return redirect(url_for('main.craft_project_pageId', project=project, pageId=page.id))
     
-    if 'remove_page_story' in request.form:
-        print("Removed page from Story")
-        removePage(current_app, current_user.username, project, page)
-        return redirect(url_for('main.craft_project_page', project=project, page='new'))
+    # if 'craft_page' in request.form:
+    #     if 'use_openai' in request.form:
+    #         print("Creating real page")
+    #         prompt = request.form['description']
+    #         page_image = craftPage(current_user.username, project=project, prompt=prompt)
+    #     else:
+    #         print("Creating test page")
+    #         # page_image = createTestPage(current_app, current_user.username, project)
+        
+    #     return redirect(url_for('main.craft_project_pageId', project=project, pageId=p.id))
+    
+    if pageId == 'new':
+        # Make this its own endpoint ...
+        page = new_page(project, request.form)
+        return redirect(url_for('main.craft_project_pageId', project=project, pageId=page.id))
+    else:
+        page = load_page(pageId)
+    print("Loading page:", page.id)
+    print("Page:", page)
 
-    story_pages = getPages(current_user.username, project)
-    workshop_pages = getPages(current_user.username, project, 'workshop')
+    craftForm = craftPageForm(
+        description=page.userImageDescription,
+        text = page.storyText,
+        page_status = page.status)
+    
+    story_pages = get_pages(current_user.username, project, 'story')
+    workshop_pages = get_pages(current_user.username, project, 'workshop')
 
     return render_template('craft/craft_project_page.html', title='Craft', 
-                           craftForm=craftForm, addForm=addForm, removeForm=removeForm,
-                           story_pages=story_pages, workshop_pages=workshop_pages,
-                           newPageImage=page_image, page=page, page_status=page_status)
+                           craftForm=craftForm, story_pages=story_pages, 
+                           workshop_pages=workshop_pages, project=project, page=page)
+    
 
 
 @bp.route('/user/<username>')

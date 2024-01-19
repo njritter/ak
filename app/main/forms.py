@@ -1,6 +1,6 @@
 from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, BooleanField
+from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField
 from wtforms.validators import ValidationError, DataRequired, Length
 import sqlalchemy as sa
 from app import db
@@ -32,17 +32,13 @@ class EmptyForm(FlaskForm):
 class craftPageForm(FlaskForm):
     text = TextAreaField('Story text')
     description = TextAreaField('Describe page', validators=[DataRequired()])
-    use_openai = BooleanField('Use OpenAI')
+    page_status = SelectField('Page Status:', choices=[
+        ('workshop', 'Workshop'), 
+        ('story', 'Story'), 
+        ('storage', 'Storage')], validators=[DataRequired()])
     craft_page = SubmitField('Craft')
+    use_openai = BooleanField('Use OpenAI')
     update_page = SubmitField('Update')
-
-
-class removePageForm(FlaskForm):
-    remove_page_story = SubmitField('Remove from Story')
-
-
-class addPageForm(FlaskForm):
-    add_page_story = SubmitField('Add to Story')
 
 
 class PostForm(FlaskForm):

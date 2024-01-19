@@ -1,6 +1,6 @@
 <form method="post">
     {{ craftForm.hidden_tag() }}
-    <img src="{{ url_for('static', filename=newPageImage) }}" class="image" />
+    <img src="{{ url_for('static', filename=page.imageURL) }}" class="image" />
     <br><br>
     <div class="container-fluid">
         <div class="row">
@@ -13,12 +13,16 @@
         </div>
         <br>
         <div class="row">
-            <div class="col-sm-1">
-                {{ craftForm.craft_page(class="btn btn-primary") }}
-            </div>         
-            <div class="col-sm-2">
-                {{ craftForm.use_openai() }} {{ craftForm.use_openai.label }}
+            <div class="col-sm-4">
+                {{ craftForm.page_status.label }} {{ craftForm.page_status() }}
             </div>
+            <div class="col-sm-4">
+                {{ craftForm.update_page(class="btn btn-primary") }}
+            </div>
+            <div class="col-sm-4">
+                {{ craftForm.craft_page(class="btn btn-primary") }}
+                {{ craftForm.use_openai() }} {{ craftForm.use_openai.label }}
+            </div>         
         </div>
     </div>
 </form>
