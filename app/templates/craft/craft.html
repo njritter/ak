@@ -5,10 +5,13 @@
     <h1>Projects</h1>
     <br>
     <a href={{ url_for('main.craft') }}>
-        <img src="{{ url_for('static', filename='_ak/new_project_small.png') }}" class="image" /></a>
+        <img src="{{ url_for('static', filename='_ak/new_project_small.png') }}" class="image" />
+        <div class="project-name">New Project</div>
+    </a>
     {% for project in projects %}
-    <a href={{ url_for('main.craft_project', project=project.project) }}>
-        <img src="{{ url_for('static', filename=project.url_start) }}" class="image" />
+    <a href={{ url_for('main.craft_project', project=project.name) }}>
+        <img src="{{ url_for('static', filename=project.icon) }}" class="image" />
+        <div class="project-name">{{ project.name }}</div>
     </a>
     {% endfor %}
 

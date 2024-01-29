@@ -1,21 +1,17 @@
-import cv2
-from datetime import datetime, timezone
+from datetime import datetime
 from flask import render_template, flash, redirect, url_for, request, g, \
     current_app
 from flask_login import current_user, login_required
 import sqlalchemy as sa
 from app import db
+from app.crafting import craft_image, get_user_projects, get_project, get_projects
+from app.main import bp
 from app.main.forms import EditProfileForm, EmptyForm, \
     SearchForm, craftPageForm
 from app.models import User, Post, Project, Page
-from app.craft import createTestPage, addPage, removePage, craftPage, craft_page
-from app.main import bp
-from app.search import add_page
-from app.navigate import getUsers, getProjects, get_pages, load_page, update_page, new_page
+from app.navigate import get_pages, load_page, update_page, new_page
 import os
-from PIL import Image
 import re
-import time
 
 
 @bp.before_app_request
@@ -29,85 +25,15 @@ def before_request():
 @bp.route('/', methods=['GET', 'POST'])
 @bp.route('/index', methods=['GET', 'POST'])
 def index():
-    users = getUsers()
-    projects = getProjects(users)
-    return render_template('index.html', title='Explore',
-                           projects=projects)
+    projects = get_projects()
+    return render_template('index.html', title='Explore', projects=projects)
 
 
 @bp.route('/home')
 @login_required
 def home():
-    u = [current_user.username]
-    projects = getProjects(u)
-    return render_template('home.html', title='Home',
-                           projects=projects)
-
-
-@bp.route('/craft', methods=['GET', 'POST'])
-@login_required
-def craft():
-    # List of User's projects
-    u = [current_user.username]
-    projects = getProjects(u)
-    return render_template('craft/craft.html', title='Craft',
-                           projects=projects)
-
-
-@bp.route('/craft/<project>', methods=['GET', 'POST'])
-@login_required
-def craft_project(project):
-    # Project Home Page
-    print("Working on project:", project)
-    story_pages = get_pages(current_user.username, project, 'story')
-    workshop_pages = get_pages(current_user.username, project, 'workshop')
-    return render_template('craft/craft_project.html', title='Craft', 
-                           story_pages=story_pages, workshop_pages=workshop_pages,
-                           project=project)
-
-
-@bp.route('/craft/<project>/<pageId>', methods=['GET', 'POST'])
-@login_required
-def craft_project_pageId(project, pageId):
-
-    # Update existing page
-    if 'update_page' in request.form:
-        page = update_page(pageId=pageId, parameters=request.form)    
-        time.sleep(1)  # ... do this better ...
-        return redirect(url_for('main.craft_project_pageId', project=project, pageId=page.id))
-    
-    # if 'craft_page' in request.form:
-    #     if 'use_openai' in request.form:
-    #         print("Creating real page")
-    #         prompt = request.form['description']
-    #         page_image = craftPage(current_user.username, project=project, prompt=prompt)
-    #     else:
-    #         print("Creating test page")
-    #         # page_image = createTestPage(current_app, current_user.username, project)
-        
-    #     return redirect(url_for('main.craft_project_pageId', project=project, pageId=p.id))
-    
-    if pageId == 'new':
-        # Make this its own endpoint ...
-        page = new_page(project, request.form)
-        return redirect(url_for('main.craft_project_pageId', project=project, pageId=page.id))
-    else:
-        page = load_page(pageId)
-    print("Loading page:", page.id)
-    print("Page:", page)
-
-    craftForm = craftPageForm(
-        description=page.userImageDescription,
-        text = page.storyText,
-        page_status = page.status)
-    
-    story_pages = get_pages(current_user.username, project, 'story')
-    workshop_pages = get_pages(current_user.username, project, 'workshop')
-
-    return render_template('craft/craft_project_page.html', title='Craft', 
-                           craftForm=craftForm, story_pages=story_pages, 
-                           workshop_pages=workshop_pages, project=project, page=page)
-    
+    projects = get_projects()
+    return render_template('home.html', title='Home', projects=projects)
 
 
 @bp.route('/user/<username>')
@@ -230,3 +156,104 @@ def page(user, project, pagenumber):
 
     return render_template('page.html', title='Scroll', page=page, user=user, 
                            project=project,previous=previous, next=next, last=last)
+
+
+####################################################################################################
+##### Craft Routes
+####################################################################################################
+
+
+@bp.route('/craft/', methods=['GET', 'POST'])
+@login_required
+def craft():
+    # Pull up all info for user's craft page that lists all their projects
+    print("In craft")
+    projects = get_user_projects(current_user.username)
+
+    return render_template('craft/craft.html', title='Craft',
+                           projects=projects)
+
+
+@bp.route('/craft/<project>', methods=['GET', 'POST'])
+@login_required
+def craft_project(project):
+    # Project Home Page
+    print("Working on project:", project)
+    project = get_project(current_user.username, project)
+    story_pages = get_pages(current_user.username, project.name, 'story')
+    return render_template('craft/craft_project.html', title='Craft', 
+                           story_pages=story_pages, project=project)
+
+
+@bp.route('/craft/<project>/<pageId>', methods=['GET', 'POST'])
+@login_required
+def craft_project_pageId(project, pageId):
+    # Workspace for crafting Page: pageId
+
+    # Update existing page
+    if 'update_page' in request.form:
+        page = update_page(pageId=pageId, parameters=request.form)    
+        return redirect(url_for('main.craft_project_pageId', project=project, pageId=page.id))
+    
+    # Craft something new
+    if 'craft_page' in request.form:
+        
+        # If 'use_openai' is checked, then use OpenAI to generate image
+        if 'use_openai' in request.form:
+            test = False
+        else:
+            test = True
+        
+        # Make sure to include most recent updates to page
+        page = update_page(pageId=pageId, parameters=request.form)    
+        page = craft_image(page, test=test)
+
+        return redirect(url_for('main.craft_project_pageId', project=project, pageId=page.id))
+    
+    if pageId == 'new':
+        # Make this its own endpoint ...
+        page = new_page(project, request.form)
+        return redirect(url_for('main.craft_project_pageId', project=project, pageId=page.id))
+    else:
+        page = load_page(pageId)
+    print("Loading page:", page.id)
+    print("Page:", page)
+
+    craftForm = craftPageForm(
+        description=page.userImageDescription,
+        text = page.storyText,
+        page_status = page.status,
+        page_number = page.pageNumber)
+    
+    story_pages = get_pages(current_user.username, project, 'story')
+    workshop_pages = get_pages(current_user.username, project, 'workshop')
+
+    return render_template('craft/craft_project_page.html', title='Craft', 
+                           craftForm=craftForm, story_pages=story_pages, 
+                           workshop_pages=workshop_pages, project=project, page=page)
+
+
+# @bp.route('/craft/add/<project>', methods=['POST'])
+# @login_required
+# def craft_add_project(project):
+#     # Takes a dictionary of Project info and adds a new Project to user
+#     return()
+
+
+# @bp.route('/craft/update/<project>', methods=['POST'])
+# @login_required
+# def craft_update_project(project):
+#     return()
+
+
+# @bp.route('/craft/add/<page>', methods=['POST'])
+# @login_required
+# def craft_add_page(page):
+#     # Takes a dictionary of Page info and adds a new Page to project
+#     return()
+
+
+# @bp.route('/craft/update/<page>', methods=['POST'])
+# @login_required
+# def craft_update_page(page):
+#     return()

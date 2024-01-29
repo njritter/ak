@@ -1,17 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-    <h1>Story</h1>
-    <a href={{ url_for("main.craft_project_pageId", project=project, pageId="new") }}>
+    <h1> Overview </h1>
+    {{ project.overview }}
+    <br>
+    <h1> Global Context </h1>
+    {{ project.globalContext }}
+    <br>
+    <h1>Story Pages</h1>
+    <a href={{ url_for("main.craft_project_pageId", project=project.name, pageId="new") }}>
         <img src="{{ url_for('static', filename='_ak/new_page_small.png') }}" class="image" /></a>
     {% for page in story_pages %}
-    <a href={{ url_for("main.craft_project_pageId", project=page.projectId, pageId=page.id) }}>
-    <img src="{{ url_for('static', filename=page.iconURL) }}" class="image" /></a> 
-    {% endfor %}
-
-    <h1>Workshop</h1>
-    {% for page in workshop_pages %}
     <a href={{ url_for("main.craft_project_pageId", project=page.projectId, pageId=page.id) }}>
     <img src="{{ url_for('static', filename=page.iconURL) }}" class="image" /></a> 
     {% endfor %}

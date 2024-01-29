@@ -1,7 +1,7 @@
 from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField
-from wtforms.validators import ValidationError, DataRequired, Length
+from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField, IntegerField
+from wtforms.validators import ValidationError, DataRequired, Length, NumberRange
 import sqlalchemy as sa
 from app import db
 from app.models import User
@@ -36,6 +36,7 @@ class craftPageForm(FlaskForm):
         ('workshop', 'Workshop'), 
         ('story', 'Story'), 
         ('storage', 'Storage')], validators=[DataRequired()])
+    page_number = IntegerField('Page Number', validators=[DataRequired(), NumberRange(min=0)])
     craft_page = SubmitField('Craft')
     use_openai = BooleanField('Use OpenAI')
     update_page = SubmitField('Update')

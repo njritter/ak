@@ -13,13 +13,16 @@
         </div>
         <br>
         <div class="row">
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 {{ craftForm.page_status.label }} {{ craftForm.page_status() }}
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-3">
+                {{ craftForm.page_number() }}
+            </div>
+            <div class="col-sm-3">
                 {{ craftForm.update_page(class="btn btn-primary") }}
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 {{ craftForm.craft_page(class="btn btn-primary") }}
                 {{ craftForm.use_openai() }} {{ craftForm.use_openai.label }}
             </div>         

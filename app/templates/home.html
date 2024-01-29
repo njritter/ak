@@ -18,8 +18,8 @@
 
 
     {% for project in projects %}
-    <a href={{ url_for("main.page", user=project.user, project=project.project, pagenumber="0") }}>
-        <img src="{{ url_for('static', filename=project.url_start) }}" class="image" />
+    <a href={{ url_for("main.page", user=project.user, project=project.name, pagenumber="0") }}>
+        <img src="{{ url_for('static', filename=project.icon) }}" class="image" />
     </a>
     {% endfor %}
 

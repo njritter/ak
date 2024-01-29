@@ -175,18 +175,38 @@ class Post(SearchableMixin, db.Model):
     
 
 class Project:
-    def __init__(self, user, project, url_start):
-        self.user = user
-        self.project = project
-        self.url_start = url_start
+    def __init__(self, id=None, name=None, username=None, overview=None, globalContext=None, status=None, createdDate=None, updatedDate=None, icon=None):
+        self.id = id
+        self.name = name
+        self.username = username
+        self.overview = overview
+        self.globalContext = globalContext
+        self.status = status
+        self.createdDate = createdDate
+        self.updatedDate = updatedDate
+        self.icon = icon
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**data)
 
     def get_info(self):
-        return f"User: {self.user}, Project: {self.project}, \
-            Start URL: {self.url_start}"
-    
+        """Returns a formatted string with project details."""
+        info = f"Project ID: {self.id}\n"
+        info += f"Name: {self.name}\n"
+        info += f"Username: {self.username}\n"
+        info += f"Overview: {self.overview}\n"
+        info += f"Global Context: {self.globalContext}\n"
+        info += f"Status: {self.status}\n"
+        info += f"Created Date: {self.createdDate}\n"
+        info += f"Updated Date: {self.updatedDate}\n"
+        info += f"Icon: {self.icon}\n"
+        return info
+
     def __repr__(self):
-        return '<User {}, {}>'.format(self.user, self.project)
-    
+        """Returns a formal string representation of the Project object."""
+        return f"Project(id={self.id}, name={self.name}, username={self.username}, overview={self.overview}, globalContext={self.globalContext}, status={self.status}, createdDate={self.createdDate}, updatedDate={self.updatedDate}, icon={self.icon})"
+
 
 class Page:
     def __init__(self, id=None, username=None, projectId=None, storyText=None, 
