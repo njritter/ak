@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="card-body">
+    <p>Welcome to Accumulated Knowledge!
+      AK is a tool to help you tell a story using text and pictures with the help of generative AI.</p>
+    <p>Checkout the README to learn more about how this tool works. To quickstart, enter a story title below
+      and click 'Create Story'. Your story will appear in the Library and you can start adding content to it.
+      The AI will generate images and suggestions for you to consider based off of the content of the story.
+      As content accumulates, the AI will generate more relevant suggestions.
+    </p>
+  </div>
+
+  <br>
+
+  <div class="card-body">
+    <form action="" method="post">
+      {{ create_story_form.hidden_tag() }}
+      {{ create_story_form.title.label }}
+      {{ create_story_form.title }}
+      {{ create_story_form.create(class_='btn btn-primary') }}
+    </form>
+  </div>
+
+  <br>
+
+  <div class="row">
+    <h3>Library</h3>
+    {% for story in stories %}
+    <a href={{ '/' + story.id|string + '/1' }}>{{ story.title }}</a>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}
