@@ -10,9 +10,9 @@ docker run --name elasticsearch -d --rm -p 9200:9200 \
     -e discovery.type=single-node -e xpack.security.enabled=false \
     -t docker.elastic.co/elasticsearch/elasticsearch:8.11.3    
 
-- Run 'docker-compose up --build' from the top level directory with the docker-compose.yml file to run the backend and frontend
+- Run 'docker compose up' from the top level directory with the docker-compose.yml file to run the backend and frontend
 - Navigate to localhost:5001 in a browser window.
-- For full functionality add your-openai-api-key to ./backend/config.py and run 'docker-compose up --build' again
+- For full functionality add your-openai-api-key to ./backend/config.py and run 'docker-compose up --build'
 
 
 # Overview

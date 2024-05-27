@@ -11,14 +11,13 @@ es = Elasticsearch([app.config['ELASTICSEARCH']])
 elasticsearch_startup(es)
 
 
-@app.route('/create_story', methods=['GET', 'POST'])
-def create_story(title = "TEST TITLE"):
+@app.route('/create_story', methods=['POST'])
+def create_story():
     # Add story 'title' to the story index
+    # Add checks here. No same name, no special char, length check, ...
     
-    # Get the title from request, or use a default value if it's not provided
-    if request.method == 'POST':
-        data = request.get_json()
-        title = data.get('title', 'Test Title POST')        
+    data = request.get_json()
+    title = data.get('title', 'Test Title')        
     
     print("Creating story with name:", title, "in story index")
     story = es_create_story(es, title)

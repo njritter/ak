@@ -8,26 +8,45 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 
+def make_request(url, method='GET', json=None):
+    # Error handling for making requests to backend
+    try:
+        if method == 'GET':
+            response = requests.get(url)
+        elif method == 'POST':
+            response = requests.post(url, json=json)
+        else:
+            raise ValueError(f"Unsupported method: {method}")
+
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to make {method} request to {url}: {e}")
+        return None
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    create_story_form = createStory()
-    if request.method == 'POST':  # The form was submitted 
-        if create_story_form.validate_on_submit():  # The form data is valid
-            # Add a story with name to the database
-            title = create_story_form.data['title']
-            print("Creating story with title:", title)
-            # Send a POST request to the create_story route with the title of the story
-            response = requests.post(app.config['BACKEND_URL'] + "create_story", json={'title': title})
+    # Display Accumulated Knowledge home page. 
+    # Contains overview, a form to create a new story, and existing stories.
 
-    # Get list of stories to display under Library
-    try:
-        response = requests.get(app.config['BACKEND_URL'] + "get_stories")
-        response.raise_for_status()  # Raise an exception if the request failed
-        stories = response.json()  # Convert JSON data to Python list ... use Story class instead
-    except requests.exceptions.RequestException as e:
-        # An error occurred, use the default stories data
-        # logging.error(f"Failed to get stories from backend: {e}")
-        stories = Story(id="1", title="Test Story 1", url="/story", pages=[])     
+    # Initialize form for creating a new story
+    create_story_form = createStory()
+
+    # If create story form submitted, ping the create_story endpoint on backend
+    # to create a new story with submitted title.
+    if request.method == 'POST' and create_story_form.validate_on_submit():
+        title = create_story_form.data['title']
+        result = make_request(app.config['BACKEND_URL'] + "create_story", 'POST', {'title': title})
+        if result is None:
+            print("Failed to create story.")
+
+    # Default behavior when page is loaded:
+    # Get list of existing stories to display under Library
+    stories = make_request(app.config['BACKEND_URL'] + "get_stories")
+    if stories is None:
+        print("Failed to load stories.")
+        stories = []
 
     return render_template('index.html', 
                            create_story_form=create_story_form,
