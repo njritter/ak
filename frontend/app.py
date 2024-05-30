@@ -115,12 +115,16 @@ def story(story_id, page_num):
         # if 'Generate Image' button clicked, use AI to generate a new image
         elif story_image_form.generate_image.data:
             print("Generating image")
+            response = requests.post(app.config['BACKEND_URL'] + "generate_image", json={
+                "page_id": page.id,
+                "image_description": story_image_form.image_description.data})
         # if 'Update Image' button clicked, update current story image with new image
         elif story_image_form.update_image.data:
             print("Updating image")
-            # response = requests.post(app.config['BACKEND_URL'] + "generate_image")
-            # print(response.json())
-
+            response = requests.post(app.config['BACKEND_URL'] + "update_page", json={
+                "page_id": page.id,
+                "updates": {'image_url': page.new_image_url}})
+            
                 
         # load the new page
         return redirect(url_for('story', story_id=story_id, page_num=page_num))        

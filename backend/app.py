@@ -2,7 +2,8 @@ from elasticsearch import Elasticsearch
 from flask import Flask, jsonify, request
 from config import Config
 from elastic import elasticsearch_startup, es_create_story, es_get_stories, es_get_page, es_create_page, es_update_page
-from services import ai_generate_image, ai_generate_text
+from generate_text import ai_generate_text
+from generate_image import ai_generate_image
 
 
 app = Flask(__name__)
@@ -82,11 +83,18 @@ def generate_text(text=""):
     return jsonify(story_text)
 
 
-@app.route('/generate_image')
+@app.route('/generate_image', methods=['POST'])
 def generate_image():
-    # image_loc = generate_image()
-    # Add image loc to database
-    # Return success message
+    # Generate new image for story using image description
+    # Save image locally and add reference to the new_image field of page_id in page index
+    # Return page info with updated new_image field
+    data = request.get_json()
+    image_description = data.get('image_description', 'test image description')
+    page_id = data.get('page_id', 'test page id')
+    image_id = ai_generate_image(image_description)
+    es_update_page(es, page_id, {'new_image_url': image_id + ".jpg"})
+
+    # return updated page?
     return jsonify(message="Hello, Image!")
 
 

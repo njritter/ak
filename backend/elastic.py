@@ -7,8 +7,11 @@ page_mapping = {
     "settings": {},
     "mappings": {
         "properties": {
-            "name": {
-                "type": "keyword"
+            "image_url": {
+                "type": "text"
+            },
+            "new_image_url": {
+                "type": "text"
             },
             "url": {
                 "type": "text"
