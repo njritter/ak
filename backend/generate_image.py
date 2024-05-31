@@ -47,14 +47,11 @@ def save_image(url):
     image = requests.get(url)
     image_id = str(uuid.uuid4())
     image_name = image_id + ".jpg"
-    with open("./data/images/" + image_name, "wb") as file:
+    image_path=current_app.config['DATA'] + "/images/"
+    print("Data Path:", image_path)
+    with open(image_path + image_name, "wb") as file:
         file.write(image.content)
 
-    # Also save to static folder for display
-    with open("../frontend/static/" + image_name, "wb") as file:
-        file.write(image.content)
-
-    
     return(image_id)
 
 

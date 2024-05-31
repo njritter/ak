@@ -1,6 +1,6 @@
 # Accumulated Knowledge
 
-Accumulated Knowledge is a tool to help you tell a story using text and pictures with the help of gAI.
+Accumulated Knowledge (AK) is a tool to help you tell a story using text and pictures with the help of gAI.
 
 Quick Start (Docker):
 - Run an Elasticsearch instance with (give it 30 seconds to start before next step):
@@ -14,17 +14,15 @@ docker run --name elasticsearch -d --rm -p 9200:9200 \
 - Navigate to localhost:5001 in a browser window.
 - For full functionality add your-openai-api-key to ./backend/config.py and run 'docker-compose up --build'
 
-
 # Overview
 
-The key thing AK does is build on itself overtime. It takes the images and text you've used to learn how to add to or revise the story. i.e. As text and images accumualate in the searchable database we use a RAG pipeline to search for relevant content and an engineered prompt to openAI. 
+AK uses the content of your story in various ways to improve its suggestions. As content accumulates, suggestions (hopefully) improve. 
 
-Composed of the following parts.
-
+Story content is stored in a searchable database to be used as part of Retrieval-Augmented Generation (RAG) pipeline.
 
 # Development
 
-To run all the pieces separately:
+Each piece (Elasticsearch, Backend, Frontend) can be run separately.
 
 # Launch ElasticSearch
 docker run --name elasticsearch -d --rm -p 9200:9200 \

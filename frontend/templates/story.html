@@ -23,7 +23,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col text-center">
-            <img class="centered-image" src="{{ url_for('static', filename=page.image_url) }}" class="image" />
+            <img class="centered-image" src="{{ url_for('serve_image', filename=page.image_url) }}" class="image" />
         </div>
     </div>
 </div>
@@ -69,7 +69,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col text-center">
-            <img class="centered-image" src="{{ url_for('static', filename=page.new_image_url) }}" class="image" />
+            <img class="centered-image" src="{{ url_for('serve_image', filename=page.new_image_url) }}" class="image" />
         </div>
     </div>
 </div>

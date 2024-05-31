@@ -1,11 +1,12 @@
 from config import Config
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from forms import createStory, storyImage, storyPageNav, storyText
 from models import Page, Story
 import requests
 
 app = Flask(__name__)
 app.config.from_object(Config)
+IMAGE_PATH = app.config['DATA'] + "/images"
 
 
 def make_request(url, method='GET', json=None):
@@ -23,6 +24,12 @@ def make_request(url, method='GET', json=None):
     except requests.exceptions.RequestException as e:
         print(f"Failed to make {method} request to {url}: {e}")
         return None
+    
+
+@app.route('/app/data/images/<filename>')
+def serve_image(filename):
+    return send_from_directory(IMAGE_PATH, filename)
+    # return send_from_directory('../data/images/', filename)
 
 
 @app.route('/', methods=['GET', 'POST'])

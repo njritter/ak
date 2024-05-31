@@ -115,11 +115,13 @@ def es_create_page(es, story_id, page_num):
     body = {
         "story_id": story_id,
         "page_number": page_num,
-        "image_url": "ak/default_page.png",
+        # "image_url": "ak/default_page.png",
+        "image_url": "default_page.png",
         "story_text": story_text,
         "new_story_text": new_story_text,
         "new_image_description": new_image_description,
-        "new_image_url": "ak/default_page.png"}
+        "new_image_url": "default_page.png"}
+        # "new_image_url": "ak/default_page.png"}
     
     # Add the page to the page index
     page_id = str(uuid.uuid4())
