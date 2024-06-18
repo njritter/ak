@@ -3,6 +3,7 @@ import uuid
 
 
 # Page Mapping
+# Make sure this maps to the Page class in frontend/models.py
 page_mapping = {
     "settings": {},
     "mappings": {
@@ -12,6 +13,9 @@ page_mapping = {
             },
             "new_image_url": {
                 "type": "text"
+            },
+            "page_number": {
+                "type": "integer"
             },
             "url": {
                 "type": "text"
@@ -28,6 +32,7 @@ page_mapping = {
 }
 
 # Story Mapping
+# Make sure this maps to the Story class in frontend/models.py
 story_mapping = {
     "settings": {},
     "mappings": {
@@ -80,7 +85,6 @@ def es_create_story(es, title):
 def es_get_stories(es, ids):
     # Get all info about stories with [ids] from story index.
     # If ids is empty [], return all stories
-    # If no stories are found, return a test story
     
     if ids:  # Return stories with ids
         response = es.search(index="story", body={"query": {"ids": {"values": ids}}}, size=100)
@@ -92,11 +96,13 @@ def es_get_stories(es, ids):
         story = hit['_source']
         story['id'] = hit['_id']  # Add the document ID to the story
         stories.append(story)
+
+    return stories
     
-    if stories:
-        return stories
-    else:
-        return [{"id": "1", "title": "Test Story 1", "url": "/story", "pages": []}]
+    # if stories:
+    #     return stories
+    # else:
+    #     return [{"id": "1", "title": "Test Story 1", "url": "/story", "pages": []}]
     
 
 def es_create_page(es, story_id, page_num):
@@ -175,3 +181,32 @@ def es_update_page(es, page_id, updates):
     es.indices.refresh(index="page")  # Refresh the page index
     print("Page updated")
     return None
+
+
+def es_get_backstory(es, story_id, page_number):
+    # Get all text from pages in story_id before page_number
+    # If first page, return nothing.
+    if page_number == 1:
+        return None  # No backstory for the first page
+    
+    # Elasticsearch query to fetch previous pages
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"match": {"story_id": story_id}},
+                    {"range": {"page_number": {"lt": page_number}}}
+                ]
+            }
+        },
+        "sort": [{"page_number": {"order": "asc"}}]
+    }
+    
+    try:
+        response = es.search(index="page", body=query)
+        text = [hit["_source"]["story_text"] for hit in response["hits"]["hits"]]
+        backstory = " ".join(text)
+        return backstory
+    except Exception as e:
+        print(f"Error fetching backstory: {e}")
+        return None

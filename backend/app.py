@@ -91,7 +91,7 @@ def generate_image():
     data = request.get_json()
     image_description = data.get('image_description', 'test image description')
     page_id = data.get('page_id', 'test page id')
-    image_id = ai_generate_image(image_description)
+    image_id = ai_generate_image(es, page_id, image_description)
     es_update_page(es, page_id, {'new_image_url': image_id + ".jpg"})
 
     # return updated page?
